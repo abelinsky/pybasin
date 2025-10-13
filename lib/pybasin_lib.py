@@ -1812,7 +1812,7 @@ def save_tT_path(t, T, fn, Kelvin=273.15, float_format="%.4f"):
 
 
 def simulate_ahe(resample_t, nt_prov, n_nodes, time_array_bp, z_nodes, T_nodes, active_nodes,
-                 prov_ages_start, prov_ages_end, Ts, grain_radius_nodes, U, Th,
+                 prov_ages_start, prov_ages_end, Ts, minerals, grain_radius_nodes, U, Th,
                  ahe_method='RDAAM',
                  alpha=0.04672, C0=0.39528, C1=0.01073, C2=-65.12969, C3=-7.91715, 
                  provenance_start_temp=120.0, log_tT_paths=False, tT_path_filename=""):
@@ -1877,8 +1877,16 @@ def simulate_ahe(resample_t, nt_prov, n_nodes, time_array_bp, z_nodes, T_nodes, 
 
             for n_prov in range(n_prov_scenarios):
                 Myr = 1e6 * 365.25 * 24 * 60 * 60
-                t = ahe_node_times[nn][n_prov] * Myr
-                T = ahe_node_temps[nn][n_prov] + Kelvin
+                t_Myr = ahe_node_times[nn][n_prov]
+                T_degC = ahe_node_temps[nn][n_prov]
+
+                t_Ma = t_Myr.max() - t_Myr
+                
+                t_Ma_young_to_old = t_Ma[::-1]
+                T_degC_young_to_old = T_degC[::-1]
+
+                t = t_Myr * Myr
+                T = T_degC + Kelvin
 
                 if log_tT_paths is True:
                     fn = os.path.join(tT_path_filename, f"tT_AHe_sample{nn}_grain{ng}_prov{n_prov}.txt")
@@ -1888,13 +1896,72 @@ def simulate_ahe(resample_t, nt_prov, n_nodes, time_array_bp, z_nodes, T_nodes, 
                 grain_radius = grain_radius_nodes[nn][ng]
                 U_grain = U[nn][ng]
                 Th_grain = Th[nn][ng]
-                he_age_i = he.calculate_he_age_meesters_dunai_2002(
-                    t, T, grain_radius, U_grain, Th_grain,
-                    alpha=alpha, C0=C0, C1=C1, C2=C2, C3=C3,
-                    method=ahe_method)
+                mineral = minerals[nn][ng]
 
+                # todo: add option to use other models
+                if mineral == 'apatite':
+                    he_age_i = he.calculate_he_age_meesters_dunai_2002(
+                        t, T, grain_radius, U_grain, Th_grain,
+                        alpha=alpha, C0=C0, C1=C1, C2=C2, C3=C3,
+                        method=ahe_method)
+                    
+                    he_age_final_My = he_age_i[-1] / Myr
+
+                elif mineral == "zircon":
+                    
+                    try:
+                        import pythermo as pyt
+                    except ImportError:
+                        msg = "could not import pythermo, which is required for zircon AHe age calculation, " \
+                        "see https://github.com/OpenThermochronology/PyThermo"
+                        raise ImportError()
+                    import pdb
+
+                    #create your instance of a zircon
+                    log2_nodes = 8  #number of nodes in the spherical diffusion model, 2^log2_nodes
+
+                    U_ppm, Th_ppm, Sm_ppm = U_grain * 1e6, Th_grain * 1e6, 0.0
+                    grain_radius_micron = grain_radius * 1e6  #convert to micron
+
+                    tT_in = np.array([t_Ma_young_to_old, T_degC_young_to_old]).T  #time-temperature path as a 2D numpy array
+                    
+                    print("start, end time (Ma): ", t_Ma_young_to_old[0], t_Ma_young_to_old[-1])
+                    print("start, end temp (C): ", T_degC_young_to_old.min(), T_degC_young_to_old.max())
+                    pdb.set_trace()
+
+                    #create your time-temperature path object
+                    tT = pyt.tT_path(tT_in)
+
+                    # interpolate the path
+                    tT.tT_interpolate()
+
+                    #    create annealing and reduced time temp arrays, you'll need these for the next two cells below
+                    try:
+                        zirc_anneal, zirc_tT = tT.guenthner_anneal()
+                    except:
+                        msg = "error in calculating zircon annealing "
+                        msg += ", using Tt path:\n"
+                        msg += str(t_Ma_young_to_old) + '\n' + str(T_degC_young_to_old)
+                        raise ValueError(msg)
+                    
+                    #ap_anneal,ap_tT = tT.ketcham_anneal()
+                    
+                    zirc_anneal, zirc_tT = tT.guenthner_anneal()
+                    
+                    zirc_grain = pyt.zircon(grain_radius_micron, log2_nodes, zirc_tT, zirc_anneal, U_ppm, Th_ppm, Sm_ppm)
+
+                    #and calculate the alpha-ejection corrected date using the ZRDAAM of Guenthner et al. (2013)
+                    zirc_date = zirc_grain.guenthner_date()
+                    he_age_i = zirc_date
+                    he_age_final_My = he_age_i 
+                    print(f"simulated zircon age: {zirc_date}")
+
+                else:
+                    msg = f'error, {mineral} not implemented yet, only apatite implemented so far'
+                    raise ValueError(msg)
+                    
                 # store AHe age in Myr bp
-                ahe_age_nodes[ng, n_prov] = he_age_i[-1] / Myr
+                ahe_age_nodes[ng, n_prov] = he_age_final_My
 
                 # ahe_ln_mean_nodes[nn, n_prov] = l_mean
                 # ahe_ln_std_nodes[nn, n_prov] = l_mean_std

@@ -18,7 +18,7 @@ import ast
 # from runpy import run_path
 
 
-# import pdb
+import pdb
 import datetime
 import pickle
 import itertools
@@ -604,10 +604,11 @@ def assemble_data_and_simulate_he(he_samples_well,
                                    alpha=0.04672, C0=0.39528, C1=0.01073,
                                    C2=-65.12969, C3=-7.91715,
                                    provenance_start_temp=120.0,
+                                   default_he_mineral="apatite",
                                    log_tT_paths=False, tT_path_filename=""):
 
     """
-    Use modeled temperature history and provneance history to model apatite (U-Th)/He ages
+    Use modeled temperature history and provenance history to model apatite (U-Th)/He ages
     """
 
     if calculate_thermochron_for_all_nodes is True:
@@ -615,6 +616,7 @@ def assemble_data_and_simulate_he(he_samples_well,
         print('-' * 10)
         print('calculating U-Th/He ages for all nodes')
 
+        minerals_nodes = [[default_he_mineral, default_he_mineral]] * n_nodes
         he_grain_radius_nodes = np.zeros((n_nodes, 2))
         U_nodes = np.zeros((n_nodes, 2))
         Th_nodes = np.zeros((n_nodes, 2))
@@ -670,12 +672,15 @@ def assemble_data_and_simulate_he(he_samples_well,
                     Ur0_min = Ur0.min()
 
         # calculate helium ages for all nodes
+        print("starting calculation of He ages for all nodes")
+
         simulated_He_data =\
             pybasin_lib.simulate_ahe(
                 resample_t, nt_prov, n_nodes, time_array_bp,
                 z_nodes, T_nodes, active_nodes,
                 prov_start_nodes, prov_end_nodes,
-                surface_temp, he_grain_radius_nodes, U_nodes, Th_nodes,
+                surface_temp, 
+                minerals_nodes, he_grain_radius_nodes, U_nodes, Th_nodes,
                 ahe_method=ahe_method,
                 alpha=alpha, C0=C0, C1=C1, C2=C2, C3=C3,
                 provenance_start_temp=provenance_start_temp,
@@ -739,6 +744,7 @@ def assemble_data_and_simulate_he(he_samples_well,
     # assemble grain diameters, U and Th content of each sample
     samples = he_samples_well['sample'].values
     he_grain_radius_samples = []
+    minerals = []
 
     U_samples = []
     Th_samples = []
@@ -753,14 +759,19 @@ def assemble_data_and_simulate_he(he_samples_well,
         Th_sample = he_data['Th'][ind_sample].values * 1e-6
         Th_samples.append(Th_sample)
 
+        mineral = he_data['mineral'][ind_sample].values
+        minerals.append(mineral)
+
     print('calculating He for %i samples' % n_he_samples)
+
+    #pdb.set_trace()
 
     simulated_he_data_samples =\
         pybasin_lib.simulate_ahe(
             resample_t, nt_prov, n_he_samples, time_array_bp,
             z_he_samples, T_he_samples, active_nodes_he_samples,
             prov_start_he_samples, prov_end_he_samples,
-            surface_temp, he_grain_radius_samples,
+            surface_temp, minerals, he_grain_radius_samples,
             U_samples, Th_samples,
             ahe_method=ahe_method,
             alpha=alpha, C0=C0, C1=C1, C2=C2, C3=C3,
