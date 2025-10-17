@@ -844,8 +844,8 @@ def model_vs_data_figure(model_run_data,
                                          z_nodes[-1, active_nodes[-1]],
                                          **line_props)
 
-        model_label.append('AHe ages')
-        model_range_label.append('AHe ages')
+        model_label.append('He ages')
+        model_range_label.append('He ages')
 
     if AHe_data is not None:
         for ahe_ages_sample, ahe_sample_depth, ahe_ages_sample_SE in \
@@ -884,7 +884,7 @@ def model_vs_data_figure(model_run_data,
                 pc.set_edgecolor('darkblue')
                 pc.set_facecolor('lightblue')
 
-        data_label.append('AHe ages')
+        data_label.append('He ages')
 
     # add labels:
     axb.set_ylabel('Burial depth (m)')
@@ -906,7 +906,7 @@ def model_vs_data_figure(model_run_data,
     if AFT_data is not None:
         ax_afta.set_xlabel('AFT age (Ma)')
     if AHe_data is not None:
-        ax_ahe.set_xlabel('AHe age (Ma)')
+        ax_ahe.set_xlabel('He age (Ma)')
     #ax_aftln.set_xlabel(r'AFT ln ($\mu m$)')
 
     if show_strat_column is True:
