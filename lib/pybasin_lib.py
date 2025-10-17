@@ -1909,12 +1909,14 @@ def simulate_ahe(resample_t, nt_prov, n_nodes, time_array_bp, z_nodes, T_nodes, 
 
                 elif mineral == "zircon":
                     
+                    print("found a zircon grain, calculating AHe age using PyThermo ZRDAAM model")
+
                     try:
                         import pythermo as pyt
                     except ImportError:
                         msg = "could not import pythermo, which is required for zircon AHe age calculation, " \
                         "see https://github.com/OpenThermochronology/PyThermo"
-                        raise ImportError()
+                        raise ImportError(msg)
                     import pdb
 
                     #create your instance of a zircon
@@ -1923,12 +1925,12 @@ def simulate_ahe(resample_t, nt_prov, n_nodes, time_array_bp, z_nodes, T_nodes, 
                     U_ppm, Th_ppm, Sm_ppm = U_grain * 1e6, Th_grain * 1e6, 0.0
                     grain_radius_micron = grain_radius * 1e6  #convert to micron
 
-                    tT_in = np.array([t_Ma_young_to_old, T_degC_young_to_old]).T  #time-temperature path as a 2D numpy array
-                    
-                    print("start, end time (Ma): ", t_Ma_young_to_old[0], t_Ma_young_to_old[-1])
-                    print("start, end temp (C): ", T_degC_young_to_old.min(), T_degC_young_to_old.max())
-                    pdb.set_trace()
+                    # resample time-temperature path to reduce number of points
+                    tT_in = np.array([t_Ma_young_to_old[::10], T_degC_young_to_old[::10]]).T  #time-temperature path as a 2D numpy array
 
+                    print("start, end time (Ma): ", tT_in[0, 0], tT_in[-1, 0])
+                    print("start, end temp (C): ", tT_in[:, 1].min(), tT_in[:, 1].max())
+                    
                     #create your time-temperature path object
                     tT = pyt.tT_path(tT_in)
 
@@ -1938,16 +1940,28 @@ def simulate_ahe(resample_t, nt_prov, n_nodes, time_array_bp, z_nodes, T_nodes, 
                     #    create annealing and reduced time temp arrays, you'll need these for the next two cells below
                     try:
                         zirc_anneal, zirc_tT = tT.guenthner_anneal()
-                    except:
-                        msg = "error in calculating zircon annealing "
-                        msg += ", using Tt path:\n"
-                        msg += str(t_Ma_young_to_old) + '\n' + str(T_degC_young_to_old)
+                    except Exception as e:
+                        msg = str(e) + '\n'
+                        msg += "\nerror in calculating zircon annealing "
+                        #msg += ", using Tt path:\n"
+                        #msg += str(t_Ma_young_to_old) + '\n' + str(T_degC_young_to_old)
+                        df_error = pd.DataFrame(tT_in, columns=['time_Ma', 'T_degC'])
+                        error_fn = os.path.join(tT_path_filename, f"error_tT_AHe_sample{nn}_grain{ng}_prov{n_prov}.csv")
+                        df_error.to_csv(error_fn, index=False)
+                        msg += f"saved tT path that caused the error to {error_fn}\n"
+                        
                         raise ValueError(msg)
                     
                     #ap_anneal,ap_tT = tT.ketcham_anneal()
                     
                     zirc_anneal, zirc_tT = tT.guenthner_anneal()
                     
+                    # check if zirc_tT and the input tT match
+                    zirc_T_check = np.interp(tT_in[:, 0], zirc_tT[:, 0], zirc_tT[:, 1])
+                    if np.any(np.abs(zirc_T_check - tT_in[:, 1])) > 5.0:
+                        msg = "error, zircon interpolated tT path does not match input tT path!"
+                        raise ValueError(msg)
+
                     zirc_grain = pyt.zircon(grain_radius_micron, log2_nodes, zirc_tT, zirc_anneal, U_ppm, Th_ppm, Sm_ppm)
 
                     #and calculate the alpha-ejection corrected date using the ZRDAAM of Guenthner et al. (2013)
