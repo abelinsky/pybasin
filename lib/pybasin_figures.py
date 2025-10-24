@@ -847,6 +847,18 @@ def model_vs_data_figure(model_run_data,
         model_label.append('He ages')
         model_range_label.append('He ages')
 
+    # show modelled age envelope for samples
+    if AHe_data is not None and modeled_ahe_age_samples is not None:
+
+        
+        modelled_ahe_age_min_all_samples = np.min(np.array(modeled_ahe_age_samples_min), axis=1)
+        modelled_ahe_age_max_all_samples = np.max(np.array(modeled_ahe_age_samples_min), axis=1)
+        depths_array= np.array(ahe_sample_depths)
+
+        leg_ahe_sample_min = ax.scatter(modelled_ahe_age_min_all_samples, depths_array, marker="|", zorder=100, color="tab:blue")
+        leg_ahe_sample_max = ax.scatter(modelled_ahe_age_max_all_samples, depths_array, marker="|", zorder=100, color="tab:blue")
+
+        
     if AHe_data is not None:
         for ahe_ages_sample, ahe_sample_depth, ahe_ages_sample_SE in \
                 zip(ahe_ages_all_samples,
@@ -1119,6 +1131,10 @@ def model_vs_data_figure(model_run_data,
         if leg_model_range is not None:
             leg_items += [leg_model_range]
             leg_labels += [model_range_label_merged]
+
+        if leg_ahe_sample_max is not None:
+            leg_items += [leg_ahe_sample_min]
+            leg_labels += ['modeled He age range samples']
 
         fig.legend(leg_items, leg_labels,
                    loc='lower center', ncol=ncols_legend, fontsize=legend_fontsize,
