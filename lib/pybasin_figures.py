@@ -855,8 +855,8 @@ def model_vs_data_figure(model_run_data,
         modelled_ahe_age_max_all_samples = np.max(np.array(modeled_ahe_age_samples_min), axis=1)
         depths_array= np.array(ahe_sample_depths)
 
-        leg_ahe_sample_min = ax.scatter(modelled_ahe_age_min_all_samples, depths_array, marker="|", zorder=100, color="tab:blue")
-        leg_ahe_sample_max = ax.scatter(modelled_ahe_age_max_all_samples, depths_array, marker="|", zorder=100, color="tab:blue")
+        leg_ahe_sample_min = ax_ahe.scatter(modelled_ahe_age_min_all_samples, depths_array, marker="|", zorder=100, color="tab:blue")
+        leg_ahe_sample_max = ax_ahe.scatter(modelled_ahe_age_max_all_samples, depths_array, marker="|", zorder=100, color="tab:blue")
 
         
     if AHe_data is not None:
