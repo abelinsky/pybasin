@@ -548,7 +548,10 @@ def model_vs_data_figure(model_run_data,
         if s == True:
             print(major_strat[i])
 
-    if (AFT_data is not None or AHe_data is not None) \
+    # plot provenance and burial histories
+    #if (AFT_data is not None or AHe_data is not None) \
+    #        and show_provenance_hist is True:
+    if ((AFT_data is not None and simulated_AFT_data is not None) or (AHe_data is not None and simulated_AHe_data is not None)) \
             and show_provenance_hist is True:
 
         if AFT_data is not None:
@@ -558,6 +561,7 @@ def model_vs_data_figure(model_run_data,
             burial = ahe_node_times_burial
             depths = ahe_node_zs
 
+        # show provenance and burial histories
         strat_count = 0
         for xb, yb, strat_trans in zip(burial, depths,
                                        strat_transition):
