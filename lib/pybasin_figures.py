@@ -554,6 +554,8 @@ def model_vs_data_figure(model_run_data,
     if ((AFT_data is not None and simulated_AFT_data is not None) or (AHe_data is not None and simulated_AHe_data is not None)) \
             and show_provenance_hist is True:
 
+        # get burial histories for all the thermochron nodes
+
         if AFT_data is not None:
             burial = aft_node_times_burial
             depths = aft_node_zs
@@ -854,15 +856,14 @@ def model_vs_data_figure(model_run_data,
     # show modelled age envelope for samples
     if AHe_data is not None and modeled_ahe_age_samples is not None:
 
-        
         modelled_ahe_age_min_all_samples = np.min(np.array(modeled_ahe_age_samples_min), axis=1)
-        modelled_ahe_age_max_all_samples = np.max(np.array(modeled_ahe_age_samples_min), axis=1)
+        modelled_ahe_age_max_all_samples = np.max(np.array(modeled_ahe_age_samples_max), axis=1)
         depths_array= np.array(ahe_sample_depths)
 
         leg_ahe_sample_min = ax_ahe.scatter(modelled_ahe_age_min_all_samples, depths_array, marker="|", zorder=100, color="tab:blue")
         leg_ahe_sample_max = ax_ahe.scatter(modelled_ahe_age_max_all_samples, depths_array, marker="|", zorder=100, color="tab:blue")
-
-        
+    
+    # show AHe data
     if AHe_data is not None:
         for ahe_ages_sample, ahe_sample_depth, ahe_ages_sample_SE in \
                 zip(ahe_ages_all_samples,
@@ -874,7 +875,8 @@ def model_vs_data_figure(model_run_data,
             leg_data = ax_ahe.errorbar(ahe_ages_sample, depths,
                                        xerr=ahe_ages_sample_SE * 1.96,
                                        **erb_props)
-
+        
+        # show violin plots for AHe pdf
         for ahe_age_pdf, ahe_sample_depth in \
                 zip(ahe_age_pdfs, ahe_sample_depths):
 
@@ -1013,6 +1015,13 @@ def model_vs_data_figure(model_run_data,
         for ahe_ages_sample in ahe_ages_all_samples:
             if ahe_ages_sample.max() > thermochron_age_max:
                 thermochron_age_max = ahe_ages_sample.max()
+        if modeled_ahe_age_samples_max is not None:
+            for mm in modeled_ahe_age_samples_max:
+                if np.max(mm) > thermochron_age_max:
+                    thermochron_age_max = np.max(mm)
+                    print('updated thermochron max age to %.2f from modeled AHe ages' % thermochron_age_max)
+                else:
+                    print('modeled AHe ages max %.2f not changing thermochron max age %.2f' % (np.max(mm), thermochron_age_max))
 
     if max_age_thermochron_panel is not None:
         thermochron_age_max = max_age_thermochron_panel
