@@ -163,7 +163,7 @@ def model_vs_data_figure(model_run_data,
                          left=0.12,
                          right=0.97,
                          top=0.96,
-                         max_strat_units=10,
+                         max_strat_units=None,
                          max_age_burial_panel=None,
                          max_age_thermochron_panel=None,
                          debug=False):
@@ -524,8 +524,14 @@ def model_vs_data_figure(model_run_data,
                          edgecolor="black", lw=0.1,
                          s=10,
                          cmap=cmap)
+        
+    print("node strat:", node_strat)
 
     major_strat = [n.split('_s_')[0].split('_a_')[0] for n in node_strat]
+
+    #major_strat = [msi for msi in major_strat]
+
+    #major_strat = node_strat.copy()    
     strat_transition = [m != n for m, n in zip(major_strat[:-1],
                                                major_strat[1:])]
     strat_transition.append(True)
@@ -534,7 +540,8 @@ def model_vs_data_figure(model_run_data,
 
     # check and reduce number of strat units shown
     n_strat_units_shown = np.sum(strat_transition)
-    if n_strat_units_shown > max_strat_units:
+
+    if max_strat_units is not None and n_strat_units_shown > max_strat_units:
         print('reducing number of strat units shown from %i to %i' % (n_strat_units_shown, max_strat_units))
         sint = int(np.ceil(n_strat_units_shown / max_strat_units))
 
@@ -673,7 +680,8 @@ def model_vs_data_figure(model_run_data,
         # add labels for stratigraphic units
         z_mid_trans = (z_trans[1:] + z_trans[:-1]) / 2.0
         for z_pos, strat_name in zip(z_mid_trans, strat_trans):
-            ax_strat.text(0.03, z_pos, strat_name, fontsize=strat_fontsize)
+            if strat_name[0] != "+":
+                ax_strat.text(0.03, z_pos, strat_name, fontsize=strat_fontsize)
 
     if T_data is not None and len(T_data) > 0:
         ind = T_data_type == 'BHT'
@@ -862,7 +870,10 @@ def model_vs_data_figure(model_run_data,
 
         leg_ahe_sample_min = ax_ahe.scatter(modelled_ahe_age_min_all_samples, depths_array, marker="|", zorder=100, color="tab:blue")
         leg_ahe_sample_max = ax_ahe.scatter(modelled_ahe_age_max_all_samples, depths_array, marker="|", zorder=100, color="tab:blue")
-    
+    else:
+        leg_ahe_sample_min = None
+        leg_ahe_sample_max = None
+        
     # show AHe data
     if AHe_data is not None:
         for ahe_ages_sample, ahe_sample_depth, ahe_ages_sample_SE in \
