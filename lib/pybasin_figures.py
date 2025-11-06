@@ -990,8 +990,9 @@ def model_vs_data_figure(model_run_data,
     max_T = T_nodes[-1][active_nodes[-1]].max()
 
     if T_data is not None:
-        max_T = T_obs.max()
-
+        max_T2 = T_obs.max()
+        max_T = max(max_T, max_T2)
+        
     ax_temp.set_xlim(0, max_T * 1.2)
 
     if contour_variable == 'salinity':
