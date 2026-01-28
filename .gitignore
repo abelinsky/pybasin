@@ -19,3 +19,6 @@ model_input/AFT_benchmarks*
 *checkpoint*
 notebooks/.ipynb_checkpoints*
 *checkpoint.ipynb*
+
+.venv/
+.venv
