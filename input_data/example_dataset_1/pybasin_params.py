@@ -7,18 +7,20 @@ edit this file to change the model parameters for PyBasin
 import numpy as np
 
 
-print('-' * 10)
-print('Example PyBasin dataset from the Roer Valley Graben (Luijendijk et al. 2011)')
-print('-' * 10)
+print("-" * 10)
+print(
+    "Example PyBasin dataset from the Roer Valley Graben (Luijendijk et al. 2011)"
+)
+print("-" * 10)
 
 
 class ModelParameters:
 
     # location of input data .csv files
-    output_dir = 'model_output/example_dataset_1'
-    
+    output_dir = "model_output/example_dataset_1"
+
     # names of wells or surface outcrops to include in a single set of model runs:
-    wells = ['NDW-01']
+    wells = ["KDK-01"]
 
     # option to calculate apatite fission track data
     simulate_AFT = True
@@ -39,7 +41,9 @@ class ModelParameters:
     log_tT_paths = True
 
     # location of detailled output data
-    datafile_output_dir = 'model_output/example_dataset_1/thermal_history_datafiles'
+    datafile_output_dir = (
+        "model_output/example_dataset_1/thermal_history_datafiles"
+    )
 
     # use stratigraphy input data from stratigraphic maps instead of text files
     # this is still an experimental feature, no guarantee that it actually works. Future updates will make this more
@@ -58,7 +62,7 @@ class ModelParameters:
     # variable to show color contours for in burial history panel
     # choose either 'temperature' or 'salinity'
     # to show evolution of temperature or salinity over time
-    contour_variable = 'temperature'
+    contour_variable = "temperature"
 
     # add a stratigraphic column to the figure
     show_strat_column = False
@@ -67,7 +71,7 @@ class ModelParameters:
     show_thermochron_data = True
 
     # type of figure file to save (pdf, png or jpg):
-    fig_adj = ['png']
+    fig_adj = ["png"]
 
     ###########################################
     # max thickness of strat units
@@ -100,13 +104,17 @@ class ModelParameters:
     # this should be one list for each exhumation phase, with stratigraphic unit codes ordered from old to young
     # the model will add units starting from the oldest to the youngest, untill the additional thickness needed for
     # erosion is filled
-    exhumed_strat_units = [['DCCU', 'DCDH', 'DCHS'],
-                           ['ATAL', 'ATPO', 'ATWD', 'ATBR', 'SLDNA']]
+    exhumed_strat_units = [
+        ["DCCU", "DCDH", "DCHS"],
+        ["ATAL", "ATPO", "ATWD", "ATBR", "SLDNA"],
+    ]
 
     # maximum initial (pre-erosion) thicknesses:
     # make sure the last unit is thick enough so that all values of exhumation that you want to test can be accomodated
-    original_thicknesses = [[2000.0, 1000.0, 1000.0],
-                            [500, 100, 500, 500.0, 3000.0]]
+    original_thicknesses = [
+        [2000.0, 1000.0, 1000.0],
+        [500, 100, 500, 500.0, 3000.0],
+    ]
 
     # support for two-stage exhumation history, enables fast and slow exhumation segments
     # switch for two-stage exhumation
@@ -136,7 +144,7 @@ class ModelParameters:
     # weights for calculating overall goodness of fit from the gof statistic for
     # temperature, vitrinite reflectance, apatite fission track age and
     # apatite (U-Th)/He data
-    gof_weights = [1.0/3.0, 1.0/3.0, 1.0/3.0, 1.0/3.0]
+    gof_weights = [1.0 / 3.0, 1.0 / 3.0, 1.0 / 3.0, 1.0 / 3.0]
 
     #############################
     # Thermochronology parameters
@@ -161,7 +169,7 @@ class ModelParameters:
     # options for kinetic params:
     # 'Clwt' : Chloride wt fractions
     # 'Dpar' : Dpar / etch pit size
-    annealing_kinetic_param = 'Clwt'
+    annealing_kinetic_param = "Clwt"
     # end member values for kinetic parameters (if no value given in input dataset)
     annealing_kinetics_values = np.array([0.0001, 0.02])
 
@@ -171,7 +179,7 @@ class ModelParameters:
     # annealing equation to use
     # 'FA' for fanning Arrhenius equation by Laslett (1987)
     # 'FC' for fanning curvelinear equation used by Ketcham (1999, 2007)
-    annealing_equation = 'FC'
+    annealing_equation = "FC"
 
     # empirical coefficients AFT annealing equation
     # default values from Ketcham et al. (2007) American Mineralogist
@@ -190,7 +198,7 @@ class ModelParameters:
     #   acc. to Farley(2000) JGR 105
     # 'RDAAM' for he diffusion that depends on radiation damage acc. to
     #   Flowers et al. (2009) GCA 73
-    ahe_method = 'Farley2000'
+    ahe_method = "Farley2000"
 
     # decay constants
     decay_constant_238U = 4.916e-18
@@ -206,7 +214,6 @@ class ModelParameters:
 
 
 class ParameterRanges:
-
     """
     parameter ranges for sensitivity or uncertainty analysis
 
@@ -235,6 +242,6 @@ class ParameterRanges:
     max_number_of_processes = 20
 
     # example for running multiple models
-    #exhumed_thicknesses_s = [[1000.0, 750.0], [1500.0, 750.0], [2000.0, 750.0], [2500.0, 750.0],
+    # exhumed_thicknesses_s = [[1000.0, 750.0], [1500.0, 750.0], [2000.0, 750.0], [2500.0, 750.0],
     #                         [3000.0, 750.0], [3500.0, 750.0], [4000.0, 750.0], [4500.0, 750.0],
     #                         [5000.0, 750.0]]

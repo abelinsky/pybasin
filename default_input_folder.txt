@@ -1,1 +1,1 @@
-input_data/example_dataset_1	
+input_data/without_anomalies

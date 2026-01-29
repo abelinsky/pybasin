@@ -731,8 +731,22 @@ def add_exhumation_phases(
     # merge deposition and exhumation dataframes into one
     output_df = pd.concat((well_strat, exhumation_df))
 
+    print(
+        f"{exhumation_df[["age_bottom", "age_top", "depth_top", "depth_bottom"]]=}"
+    )
+    print(
+        f"{well_strat[["age_bottom", "age_top", "depth_top", "depth_bottom"]]=}"
+    )
+    print(
+        f"{output_df[["age_bottom", "age_top", "depth_top", "depth_bottom"]]=}"
+    )
+
     # sort new dataframe to have correct sequence:
     output_df = output_df.sort_values(["age_bottom"])
+
+    print(
+        f"\noutput_df_sorted={output_df[["age_bottom", "age_top", "depth_top", "depth_bottom"]]}"
+    )
 
     return output_df
 
@@ -780,12 +794,13 @@ def find_hiatus(strat_units, age_start, age_end):
     # if last unit deposited before present: add hiatus
     if age_end.iloc[-1] > 1e-5:
         hiatus_list.append("~%s-present" % strat_units[-1])
-        hiatus_start_list.append(age_end[-1])
+        hiatus_start_list.append(age_end.iloc[-1])
         hiatus_end_list.append(0.0)
 
         print(
             "added hiatus following deposition "
-            "of youngest unit %s (%0.2f-) " % (strat_units[-1], age_end[-1])
+            "of youngest unit %s (%0.2f-) "
+            % (strat_units[-1], age_end.iloc[-1])
         )
 
     return hiatus_list, hiatus_start_list, hiatus_end_list
@@ -1325,6 +1340,18 @@ def solve_1D_heat_flow(
         print("solution is correct = ", check)
 
     if check is False:
+        # print(f"{T=}")
+        # print(f"{z=}")
+        # print(f"{dt=}")
+        # print(f"{K=}")
+        # print(f"{rho=}")
+        # print(f"{c=}")
+        # print(f"{Q=}")
+        # print(f"{upper_bnd_flux=}")
+        # print(f"{lower_bnd_flux=}")
+        # print(f"{fixed_upper_temperature=}")
+        # print(f"{fixed_lower_temperature=}")
+
         msg = "error, the heat flow solver failed. The solution is %s" % str(
             check
         )
@@ -1644,7 +1671,7 @@ def reconstruct_strat_thickness(geohist_df, verbose=False):
     strat_column_list = []
     thickness_list = []
 
-    for timestep in geohist_df.index[::-1]:
+    for timestep in geohist_df.index.values[::-1]:
 
         if geohist_df.loc[timestep, "deposition_code"] == 1:
 
@@ -1665,7 +1692,7 @@ def reconstruct_strat_thickness(geohist_df, verbose=False):
                     bm, n0, beta, thicknesses[:i].sum(), bm, 0.001
                 )
 
-            if timestep is not geohist_df.index[-1]:
+            if timestep is not geohist_df.index.values[-1]:
                 # check if thickness higher than pre-compacted thickness
                 for i, th_old, th_new in zip(
                     itertools.count(), thickness_list[-1], thicknesses[1:]
@@ -1684,7 +1711,7 @@ def reconstruct_strat_thickness(geohist_df, verbose=False):
 
     # now go through burial list and fill the burial history dataframe
     for time, strat_column, thicknesses in zip(
-        times[::-1], strat_column_list, thickness_list
+        times.values[::-1], strat_column_list, thickness_list
     ):
 
         for s, th in zip(strat_column, thicknesses):
@@ -2642,6 +2669,7 @@ def run_burial_hist_model(
         burial_df.loc[ind] = strat_thickness_df.loc[:ind].sum()
 
     if save_csv_files is True:
+        print(f"{output_dir=}")
         burial_df.to_csv(
             os.path.join(
                 output_dir,
@@ -2679,6 +2707,7 @@ def run_burial_hist_model(
     # get ages
     ages_ind = burial_df.columns
     ages = burial_df.columns.values.astype(float)
+    print(f"{ages=}")
 
     # calculate duration of geological timesteps
     durations = -np.diff(ages)
@@ -2686,8 +2715,11 @@ def run_burial_hist_model(
     if np.min(durations) <= 0:
         msg = "error, negative duration for a geological time period, check well stratigraphy or strat info data.\n"
         msg += "\tage and duration of each timeslice (My):\n"
-        for a1, a2, di in zip(ages[:-1], ages[1:], durations):
+        for idx, (a1, a2, di) in enumerate(
+            zip(ages[:-1], ages[1:], durations)
+        ):
             if di < 0:
+                msg += f"\tat index +({len(burial_df.index)-idx}) ({-idx}): {burial_df.index[-idx]}\n"
                 msg += (
                     "\tage of timeslice = %0.3f - %0.3f, duration = %0.3f\n"
                     % (a1, a2, di)

@@ -2485,6 +2485,7 @@ def main():
     print("running model input data from folder %s" % model_input_subfolder)
 
     mpath = os.path.join(model_input_subfolder, "pybasin_params.py")
+    print(f"{mpath=}")
 
     spec = importlib.util.spec_from_file_location("pybasin_params", mpath)
     param_module = importlib.util.module_from_spec(spec)
@@ -2501,6 +2502,7 @@ def main():
     input_dir = model_input_subfolder
     output_dir = Parameters.output_dir
     datafile_output_dir = Parameters.datafile_output_dir
+    print(f"{datafile_output_dir=}")
     csv_output_dir = datafile_output_dir
 
     if os.path.exists(output_dir) is False:
