@@ -731,22 +731,22 @@ def add_exhumation_phases(
     # merge deposition and exhumation dataframes into one
     output_df = pd.concat((well_strat, exhumation_df))
 
-    print(
-        f"{exhumation_df[["age_bottom", "age_top", "depth_top", "depth_bottom"]]=}"
-    )
-    print(
-        f"{well_strat[["age_bottom", "age_top", "depth_top", "depth_bottom"]]=}"
-    )
-    print(
-        f"{output_df[["age_bottom", "age_top", "depth_top", "depth_bottom"]]=}"
-    )
+    # print(
+    #     f"{exhumation_df[["age_bottom", "age_top", "depth_top", "depth_bottom"]]=}"
+    # )
+    # print(
+    #     f"{well_strat[["age_bottom", "age_top", "depth_top", "depth_bottom"]]=}"
+    # )
+    # print(
+    #     f"{output_df[["age_bottom", "age_top", "depth_top", "depth_bottom"]]=}"
+    # )
 
     # sort new dataframe to have correct sequence:
     output_df = output_df.sort_values(["age_bottom"])
 
-    print(
-        f"\noutput_df_sorted={output_df[["age_bottom", "age_top", "depth_top", "depth_bottom"]]}"
-    )
+    # print(
+    #     f"\noutput_df_sorted={output_df[["age_bottom", "age_top", "depth_top", "depth_bottom"]]}"
+    # )
 
     return output_df
 
@@ -2707,7 +2707,6 @@ def run_burial_hist_model(
     # get ages
     ages_ind = burial_df.columns
     ages = burial_df.columns.values.astype(float)
-    print(f"{ages=}")
 
     # calculate duration of geological timesteps
     durations = -np.diff(ages)

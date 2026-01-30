@@ -21,7 +21,7 @@ class ModelParameters:
     wells = ["KDK-01"]
 
     # option to calculate apatite fission track data
-    simulate_AFT = True
+    simulate_AFT = False
     simulate_He = False
     simulate_VR = True
     simulate_salinity = False
@@ -99,7 +99,7 @@ class ModelParameters:
     # exhumed_thicknesses = np.array([2750.0, 750.0])
     exhumation_period_starts = [85.8]
     exhumation_period_ends = [71.0]
-    exhumed_thicknesses = [1000.0]
+    exhumed_thicknesses = [500.0]
 
     # determine last deposited units before unconformity:
     # this should be one list for each exhumation phase, with stratigraphic unit codes ordered from old to young
@@ -109,9 +109,11 @@ class ModelParameters:
     #     ["DCCU", "DCDH", "DCHS"],
     #     ["ATAL", "ATPO", "ATWD", "ATBR", "SLDNA"],
     # ]
-    exhumed_strat_units = [
-        ["ATWDL", "ATWDM", "ATWDU", "ATBRL", "ATBR2", "ATBRM"]
-    ]
+    # exhumed_strat_units = [
+    #     ["ATWDL", "ATWDM", "ATWDU", "ATBRL", "ATBR2", "ATBRM"]
+    # ]
+    # exhumed_strat_units = [["ATBRM"]]
+    exhumed_strat_units = [["ATBRM"]]
 
     # maximum initial (pre-erosion) thicknesses:
     # make sure the last unit is thick enough so that all values of exhumation that you want to test can be accomodated
@@ -120,7 +122,9 @@ class ModelParameters:
     #     [500, 100, 500, 500.0, 3000.0],
     # ]
     # original_thicknesses = [[750.0 / 6] * 6]
-    original_thicknesses = [[28.8, 16.4, 79.4, 84.2, 55.6, 985.6]]
+    original_thicknesses = [[1000.0]]
+    # original_thicknesses = [[2500 / 6] * 6]
+    # original_thicknesses = [[57.8, 55.6, 84.2, 79.4, 16.4, 28.8]]
 
     # support for two-stage exhumation history, enables fast and slow exhumation segments
     # switch for two-stage exhumation
@@ -142,8 +146,8 @@ class ModelParameters:
     # heatflow_history = np.array([65.0, 65.0, 100.0, 100.0]) * 1e-3
     # heatflow_ages = np.array([0, 500])
     # heatflow_history = np.array([70.0, 70.0]) * 1e-3
-    heatflow_ages = np.array([300])
-    heatflow_history = np.array([68.0]) * 1e-3
+    heatflow_ages = np.array([0.0, 300.0])
+    heatflow_history = np.array([20.0, 20.0]) * 1e-3
 
     # max size of heatflow timestep (in yrs)
     max_hf_timestep = 10000.0
@@ -254,28 +258,35 @@ class ParameterRanges:
     max_number_of_processes = 8
 
     # example for running multiple models
-    # exhumed_thicknesses_s = [[1000.0, 750.0], [1500.0, 750.0], [2000.0, 750.0], [2500.0, 750.0],
-    #                         [3000.0, 750.0], [3500.0, 750.0], [4000.0, 750.0], [4500.0, 750.0],
-    #                         [5000.0, 750.0]]
+    # exhumed_thicknesses_s = [
+    #     [1000.0, 750.0],
+    #     [1500.0, 750.0],
+    #     [2000.0, 750.0],
+    #     [2500.0, 750.0],
+    #     [3000.0, 750.0],
+    #     [3500.0, 750.0],
+    #     [4000.0, 750.0],
+    #     [4500.0, 750.0],
+    #     [5000.0, 750.0],
+    # # ]
 
     # exhumed_thicknesses_s = np.array(
     #     [
-    #         # [500.0],
-    #         [750.0],
+    #         [300.0],
+    #         # [400.0],
+    #         [500.0],
     #         [1000.0],
     #         [1250.0],
-    #     ]
-    # )
+    # #     ]
+    # # )
     # heatflow_history_s = (
     #     np.array(
     #         [
-    #             # [68.0],
-    #             [70.0],
-    #             # [72.0],
-    #             [74.0],
-    #             # [76.0],
-    #             [78.0],
-    #             [80.0],
+    #             [66.0, 67.0],
+    #             [67.0, 68.0],
+    #             [69.0, 70.0],
+    #             [71.0, 72.0],
+    #             [73.0, 74.0],
     #         ]
     #     )
     #     * 1e-3

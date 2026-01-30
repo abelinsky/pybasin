@@ -35,12 +35,14 @@ from multiprocessing import Pool
 import lib.pybasin_lib as pybasin_lib
 import lib.pybasin_figures as pybasin_figures
 
+
 # helium diffusion algortihm by Meesters and Dunai (2003)
 try:
     import lib.helium_diffusion_models as he
 except ImportError:
     print("warning, failed to import native  U-Th/He module")
 
+pd.set_option("mode.chained_assignment", "raise")
 
 # make sure multi-threading for numpy is turned off (this slows down the heat
 # flow solution a lot...)
@@ -79,10 +81,15 @@ def model_data_comparison_T(T_data_well, z_nodes, T_nodes, active_nodes):
     ind_bht_ok = (T_data_well["residual"] <= 0) & (
         T_data_well["data_type"] == "BHT"
     )
-    T_data_well["P_fit"][ind_bht_nofit] = 0
-    T_data_well["residual"][ind_bht_nofit] = 15.0
-    T_data_well["P_fit"][ind_bht_ok] = 1.00
-    T_data_well["residual"][ind_bht_ok] = 0.0
+
+    # T_data_well["P_fit"][ind_bht_nofit] = 0
+    # T_data_well["residual"][ind_bht_nofit] = 15.0
+    # T_data_well["P_fit"][ind_bht_ok] = 1.00
+    # T_data_well["residual"][ind_bht_ok] = 0.0
+    T_data_well.loc[ind_bht_nofit, "P_fit"] = 0
+    T_data_well.loc[ind_bht_nofit, "residual"] = 15.0
+    T_data_well.loc[ind_bht_ok, "P_fit"] = 1.00
+    T_data_well.loc[ind_bht_ok, "residual"] = 0.0
 
     T_rmse = np.sqrt(np.mean(T_data_well["residual"] ** 2))
     T_gof = np.mean(T_data_well["P_fit"])
