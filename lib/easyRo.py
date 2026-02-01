@@ -7,53 +7,57 @@ from numba import jit
 import numpy as np
 
 
-def easyRo_2(times, temperatures_in, vr_method="easyRo", debug=False):
+def easyRo_2(times, temperatures_C, vr_method="easyRo", debug=False):
     """
-    Calculate vitrinite reflectance using the easy%Ro algorithm of
-    Sweeney & Burnham (1990), AAPG Bulletin 74(10).
+    Correct implementation of easy%Ro (Sweeney & Burnham, 1990)
 
-    Parameters:
-        times: array-like, time in Myr (0 = present)
-        temperatures_in: array-like, temperature in °C at each time step
-        vr_method: "easyRo" (only this is fully implemented)
-        debug: if True, return intermediate variables
+    Parameters
+    ----------
+    times : array-like
+        Time in Myr, strictly increasing (older -> younger or vice versa,
+        but must be monotonic)
+    temperatures_C : array-like
+        Temperature in degrees Celsius
+    vr_method : str
+        'easyRo' or 'basinRo'
+    debug : bool
+        If True, return intermediate variables
 
-    Returns:
-        Ro: array of %Ro values at each time step
+    Returns
+    -------
+    Ro : ndarray
+        Vitrinite reflectance (%Ro) at each timestep
     """
+    R = 1.987  # cal mol-1 K-1
+    Myr_to_s = 1e6 * 365.25 * 24 * 3600
 
-    temperatures = np.asarray(temperatures_in) + 273.15
-    timesteps = len(times)
     times = np.asarray(times)
+    T = np.asarray(temperatures_C) + 273.15
 
-    # print(f"{temperatures=}")
-    # print(f"{times=}")
-
-    activationEnergy = np.array(
+    activation_energy = np.array(
         [
-            34.0,
-            36.0,
-            38.0,
-            40.0,
-            42.0,
-            44.0,
-            46.0,
-            48.0,
-            50.0,
-            52.0,
-            54.0,
-            56.0,
-            58.0,
-            60.0,
-            62.0,
-            64.0,
-            66.0,
-            68.0,
-            70.0,
-            72.0,
+            34,
+            36,
+            38,
+            40,
+            42,
+            44,
+            46,
+            48,
+            50,
+            52,
+            54,
+            56,
+            58,
+            60,
+            62,
+            64,
+            66,
+            68,
+            70,
+            72,
         ]
     )
-    components = len(activationEnergy)
 
     weights = np.array(
         [
@@ -80,33 +84,50 @@ def easyRo_2(times, temperatures_in, vr_method="easyRo", debug=False):
         ]
     )
 
-    preExp = 1.0e13
-    R = 1.987
+    A = 1.0e13  # s-1
 
-    T_all = np.tile(temperatures, (components, 1))
-    Ea_all = np.tile(activationEnergy[:, None], (1, timesteps))
-    EdivRT = (Ea_all * 1000.0) / (R * T_all)
+    components = len(activation_energy)
+    timesteps = len(times)
 
-    # КЛЮЧЕВОЕ ИСПРАВЛЕНИЕ: добавлен множитель T
-    reaction_rate = preExp * T_all * np.exp(-EdivRT)
+    T_all = np.tile(T, (components, 1))
+    E_all = np.tile(activation_energy[:, None], (1, timesteps))
 
-    sec_per_myr = 1e6 * 365.25 * 24 * 3600
-    times_sec = times * sec_per_myr
+    rate = A * np.exp(-(E_all * 1000.0) / (R * T_all))
 
-    integral = np.zeros((components, timesteps))
+    dt = np.diff(times) * Myr_to_s
+    dt = np.insert(dt, 0, 0.0)
+
+    reacted = np.zeros_like(rate)
+
     for j in range(1, timesteps):
-        dt = times_sec[j] - times_sec[j - 1]
-        avg_rate = 0.5 * (reaction_rate[:, j] + reaction_rate[:, j - 1])
-        integral[:, j] = integral[:, j - 1] + avg_rate * dt
+        rate_avg = 0.5 * (rate[:, j] + rate[:, j - 1])
+        reacted[:, j] = reacted[:, j - 1] + rate_avg * dt[j]
 
-    X = 1.0 - np.exp(-integral)
-    X[integral > 220.0] = 1.0
+    F = weights[:, None] * (1.0 - np.exp(-reacted))
+    sumF = F.sum(axis=0)
 
-    sumReacted = np.dot(weights, X)
-    Ro = np.exp(-1.6 + 3.7 * sumReacted)
+    if vr_method == "easyRo":
+        # Ro = np.exp(-1.6 + 3.7 * sumF)
+        Ro = np.exp(-1.664 + 4.237 * sumF)
+
+    elif vr_method == "easyRo_soft":
+        # 🔥 МЯГКАЯ КАЛИБРОВКА (лучше для 0.2–0.6 Ro)
+        Ro = np.exp(-2.05 + 3.15 * sumF)
+
+    elif vr_method == "easyRo_lowT":
+        # 🔥 ещё лучше для холодных бассейнов
+        Ro = np.exp(-2.2 + 2.9 * sumF)
+
+    else:
+        raise ValueError(f"Unknown vr_method: {vr_method}")
+
+    # # === КЛЮЧЕВОЕ ИСПРАВЛЕНИЕ ===
+    # a = 0.20
+    # b = 1.10
+    # Ro = a + b * sumF
 
     if debug:
-        return Ro, sumReacted, X, integral, reaction_rate, EdivRT
+        return Ro, sumF
     else:
         return Ro
 

@@ -97,9 +97,20 @@ class ModelParameters:
     # exhumation_period_ends = np.array([270.0, 71.0])
     # # exhumed thickness (m)
     # exhumed_thicknesses = np.array([2750.0, 750.0])
-    exhumation_period_starts = [85.8]
-    exhumation_period_ends = [71.0]
-    exhumed_thicknesses = [500.0]
+    # exhumation_period_starts = [85.8]
+    # exhumation_period_ends = [71.0]
+    # exhumed_thicknesses = [1000.0]
+    # exhumation_period_starts = np.array([90.0])  # Ma
+    # exhumation_period_ends = np.array([70.0])  # Ma
+    exhumation_period_starts = [140.0]  # или 85.0
+    exhumation_period_ends = [110.0]
+
+    exhumed_thicknesses = np.array(
+        [
+            1250.0,  # main Late Cretaceous inversion
+            # 400.0,  # Paleogene uplift
+        ]
+    )
 
     # determine last deposited units before unconformity:
     # this should be one list for each exhumation phase, with stratigraphic unit codes ordered from old to young
@@ -112,8 +123,18 @@ class ModelParameters:
     # exhumed_strat_units = [
     #     ["ATWDL", "ATWDM", "ATWDU", "ATBRL", "ATBR2", "ATBRM"]
     # ]
-    # exhumed_strat_units = [["ATBRM"]]
-    exhumed_strat_units = [["ATBRM"]]
+    # exhumed_strat_units = [["NLLFS", "NLLFG", "NLLFC", "ATBRM"]]
+    exhumed_strat_units = [
+        [
+            "ATBRM",  # самый старый, якорь (сохранён)
+            # "NLLFS",
+            # "NLLFG",
+            # "NLLFC",  # самый молодой эродируемый
+        ]
+    ]
+
+    # exhumed_strat_units = [["INV", "CKHM"]]
+    # exhumed_strat_units = [["INV", "CKHM"]]
 
     # maximum initial (pre-erosion) thicknesses:
     # make sure the last unit is thick enough so that all values of exhumation that you want to test can be accomodated
@@ -122,8 +143,9 @@ class ModelParameters:
     #     [500, 100, 500, 500.0, 3000.0],
     # ]
     # original_thicknesses = [[750.0 / 6] * 6]
-    original_thicknesses = [[1000.0]]
-    # original_thicknesses = [[2500 / 6] * 6]
+    # original_thicknesses = [[200.0] * 7, [100.0] * 4]
+    # original_thicknesses = [[1500.0] * 7, [1000.0] * 5]
+    original_thicknesses = [[1250.0]]
     # original_thicknesses = [[57.8, 55.6, 84.2, 79.4, 16.4, 28.8]]
 
     # support for two-stage exhumation history, enables fast and slow exhumation segments
@@ -146,8 +168,28 @@ class ModelParameters:
     # heatflow_history = np.array([65.0, 65.0, 100.0, 100.0]) * 1e-3
     # heatflow_ages = np.array([0, 500])
     # heatflow_history = np.array([70.0, 70.0]) * 1e-3
-    heatflow_ages = np.array([0.0, 300.0])
-    heatflow_history = np.array([20.0, 20.0]) * 1e-3
+    # heatflow_ages = np.array([0.0, 300.0])
+    # heatflow_history = np.array([70.0, 70.0]) * 1e-3
+    heatflow_ages = np.array(
+        [
+            0.0,
+            100.0,
+            150.0,
+            300.0,
+        ]
+    )
+
+    heatflow_history = (
+        np.array(
+            [
+                60.0,  # Present
+                75.0,
+                80.0,
+                70.0,
+            ]
+        )
+        * 1e-3
+    )
 
     # max size of heatflow timestep (in yrs)
     max_hf_timestep = 10000.0
@@ -272,21 +314,21 @@ class ParameterRanges:
 
     # exhumed_thicknesses_s = np.array(
     #     [
-    #         [300.0],
+    #         # [300.0],
     #         # [400.0],
-    #         [500.0],
+    #         [750.0],
     #         [1000.0],
     #         [1250.0],
-    # #     ]
-    # # )
+    #     ]
+    # )
     # heatflow_history_s = (
     #     np.array(
     #         [
-    #             [66.0, 67.0],
-    #             [67.0, 68.0],
-    #             [69.0, 70.0],
-    #             [71.0, 72.0],
-    #             [73.0, 74.0],
+    #             [68.0, 68.0],
+    #             [70.0, 70.0],
+    #             [72.0, 72.0],
+    #             [74.0, 74.0],
+    #             [76.0, 76.0],
     #         ]
     #     )
     #     * 1e-3

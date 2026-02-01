@@ -1155,13 +1155,16 @@ def run_model_and_compare_to_data(
     ################################
     # simulate vitrinite reflectance
     ################################
-    if pybasin_params.simulate_VR is True:
+    if pybasin_params.simulate_VR:
 
         # find if there are VR samples for this well
         ind = (vr_data_df["well"] == well) & (
             vr_data_df["depth"] < z_nodes[-1].max()
         )
         vr_data_well = vr_data_df[ind]
+        print(f"\n\n===================")
+        print(f"{vr_data_well=}")
+        print(f"\n\n===================")
 
         # interpolate vitrinite reflectance data
         if (
@@ -1170,8 +1173,21 @@ def run_model_and_compare_to_data(
         ):
             print("calculating vitrinite reflectance for n=%i nodes" % n_nodes)
 
-            vr_nodes = pybasin_lib.calculate_vr(
-                T_nodes, active_nodes, time_array, n_nodes, vr_method=vr_method
+            # vr_nodes, sumF_nodes = pybasin_lib.calculate_vr(
+            #     T_nodes, active_nodes, time_array, n_nodes, vr_method=vr_method
+            # )
+
+            vr_nodes, sumF_nodes = pybasin_lib.calculate_vr(
+                T_nodes,
+                active_nodes,
+                time_array,
+                n_nodes,
+                vr_method=vr_method,
+                verbose=True,
+                auto_calibrate=False,
+                vr_obs_depths=vr_data_well["depth"].values,
+                vr_obs_values=vr_data_well["VR"].values,
+                depth_nodes=z_nodes,
             )
 
             # store surface and bottom VR value
@@ -1186,12 +1202,6 @@ def run_model_and_compare_to_data(
                 pybasin_params.use_strat_map_input is True
                 and os.path.isfile(cebs_input) is True
             ):
-                # model_results_series = cebs.vr_top_bot(
-                #      model_results_series, node_strat,
-                #     vr_nodes, geohist_df, model_scenario_number)
-                # model_results_series = cebs.vr_middle(model_results_series, node_strat,
-                #     vr_nodes, geohist_df,
-                #     model_scenario_number, z_nodes)
                 msg = "error the strat_map_input option has been discontinued"
                 raise ValueError(msg)
 

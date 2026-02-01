@@ -2049,6 +2049,45 @@ def calculate_aft_ages_pdf(
     return aft_age_bins, age_pdf_final
 
 
+# def calculate_vr(
+#     T_nodes,
+#     active_nodes,
+#     time_array,
+#     n_nodes,
+#     vr_method="easyRo",
+#     verbose=True,
+# ):
+#     vr_nodes = np.zeros(T_nodes.shape)
+#     sumF_nodes = np.zeros(T_nodes.shape)
+
+#     for nn in range(n_nodes):
+
+#         if verbose is True:
+#             sys.stdout.write(".")
+#             sys.stdout.flush()
+
+#         # vr_nodes[active_nodes[:, nn], nn] = easyRo.easyRo(
+#         #     time_array[active_nodes[:, nn]] / 1e6,
+#         #     T_nodes[active_nodes[:, nn], nn],
+#         #     vr_method=vr_method,
+#         #     debug=True,
+#         # )
+#         Ro_nn, sumF_nn = easyRo.easyRo(
+#             time_array[active_nodes[:, nn]] / 1e6,
+#             T_nodes[active_nodes[:, nn], nn],
+#             vr_method=vr_method,
+#             debug=True,  # <<< ВАЖНО
+#         )
+
+#         vr_nodes[active_nodes[:, nn], nn] = Ro_nn
+#         sumF_nodes[active_nodes[:, nn], nn] = sumF_nn
+
+#     if verbose is True:
+#         print(":-)")
+
+#     return vr_nodes, sumF_nodes
+
+
 def calculate_vr(
     T_nodes,
     active_nodes,
@@ -2056,24 +2095,131 @@ def calculate_vr(
     n_nodes,
     vr_method="easyRo",
     verbose=True,
+    auto_calibrate=False,
+    vr_obs_depths=None,
+    vr_obs_values=None,
+    depth_nodes=None,
 ):
+    """
+    Calculate vitrinite reflectance (Ro) and kinetic maturity index (sumF).
+
+    Parameters
+    ----------
+    T_nodes : ndarray
+        Temperature at nodes [time, node]
+    active_nodes : ndarray (bool)
+        Active nodes mask [time, node]
+    time_array : ndarray
+        Time array in years
+    n_nodes : int
+        Number of spatial nodes
+    vr_method : str
+        easyRo / basinRo / calibrated
+    verbose : bool
+        Print progress
+    auto_calibrate : bool
+        If True, calibrate Ro(sumF) to observed VR
+    vr_obs_depths : ndarray
+        Depths of observed VR (m)
+    vr_obs_values : ndarray
+        Observed VR values (%Ro)
+    depth_nodes : ndarray
+        Depth of nodes at present day (m)
+
+    Returns
+    -------
+    vr_nodes : ndarray
+        Modeled vitrinite reflectance
+    sumF_nodes : ndarray
+        Kinetic maturity index
+    """
+
+    import numpy as np
+    import sys
+
     vr_nodes = np.zeros(T_nodes.shape)
+    sumF_nodes = np.zeros(T_nodes.shape)
+
+    # -----------------------------
+    # 1. Compute Ro and sumF
+    # -----------------------------
     for nn in range(n_nodes):
 
-        if verbose is True:
+        if verbose:
             sys.stdout.write(".")
             sys.stdout.flush()
 
-        vr_nodes[active_nodes[:, nn], nn] = easyRo.easyRo(
-            time_array[active_nodes[:, nn]] / 1e6,
+        Ro_nn, sumF_nn = easyRo.easyRo(
+            time_array[active_nodes[:, nn]] / 1e6,  # Myr
             T_nodes[active_nodes[:, nn], nn],
             vr_method=vr_method,
+            debug=True,
         )
 
-    if verbose is True:
-        print(":-)")
+        vr_nodes[active_nodes[:, nn], nn] = Ro_nn
+        sumF_nodes[active_nodes[:, nn], nn] = sumF_nn
 
-    return vr_nodes
+    # -----------------------------
+    # 2. Optional auto-calibration
+    # -----------------------------
+    if auto_calibrate:
+
+        if (
+            vr_obs_depths is None
+            or vr_obs_values is None
+            or depth_nodes is None
+        ):
+            raise ValueError(
+                "Auto-calibration requires vr_obs_depths, "
+                "vr_obs_values and depth_nodes"
+            )
+
+        if verbose:
+            print("\n\n****************** VR auto-calibration (easy%Ro)")
+
+        # --- present-day profiles (last timestep) ---
+        sumF_0 = sumF_nodes[:, -1]
+        depth_0 = depth_nodes[:, -1]
+
+        # ensure monotonic depth for interpolation
+        order = np.argsort(depth_0)
+        depth_0_sorted = depth_0[order]
+        sumF_0_sorted = sumF_0[order]
+
+        # interpolate sumF at observed VR depths
+        sumF_obs = np.interp(
+            vr_obs_depths,
+            depth_0_sorted,
+            sumF_0_sorted,
+            left=np.nan,
+            right=np.nan,
+        )
+
+        # clean data
+        mask = (
+            np.isfinite(sumF_obs)
+            & np.isfinite(vr_obs_values)
+            & (vr_obs_values > 0.0)
+        )
+
+        if mask.sum() < 3:
+            raise ValueError("Not enough valid VR data for calibration")
+
+        sumF_obs = sumF_obs[mask]
+        vr_obs = vr_obs_values[mask]
+
+        # --- EASY%Ro CALIBRATION ---
+        # ln(Ro) = C + 3.7 * sumF
+        C = np.mean(np.log(vr_obs) - 3.7 * sumF_obs)
+
+        if verbose:
+            print(f"[VR calibration] ln(Ro) = {C:.3f} + 3.7 * sumF")
+            print(f"[VR calibration] offset C = {C:.3f}")
+
+        # apply calibrated relationship everywhere
+        vr_nodes = np.exp(C + 3.7 * sumF_nodes)
+
+    return vr_nodes, sumF_nodes
 
 
 def simulate_aft(
