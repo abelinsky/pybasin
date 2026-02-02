@@ -107,8 +107,8 @@ def easyRo_2(times, temperatures_C, vr_method="easyRo", debug=False):
     sumF = F.sum(axis=0)
 
     if vr_method == "easyRo":
-        # Ro = np.exp(-1.6 + 3.7 * sumF)
-        Ro = np.exp(-1.664 + 4.237 * sumF)
+        Ro = np.exp(-1.6 + 3.7 * sumF)
+        # Ro = np.exp(-1.664 + 4.237 * sumF)
 
     elif vr_method == "easyRo_soft":
         # 🔥 МЯГКАЯ КАЛИБРОВКА (лучше для 0.2–0.6 Ro)

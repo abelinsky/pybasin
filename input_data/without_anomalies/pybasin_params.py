@@ -102,12 +102,12 @@ class ModelParameters:
     # exhumed_thicknesses = [1000.0]
     # exhumation_period_starts = np.array([90.0])  # Ma
     # exhumation_period_ends = np.array([70.0])  # Ma
-    exhumation_period_starts = [140.0]  # или 85.0
-    exhumation_period_ends = [110.0]
+    exhumation_period_starts = [85.8]  # или 85.0
+    exhumation_period_ends = [70.0]
 
     exhumed_thicknesses = np.array(
         [
-            1250.0,  # main Late Cretaceous inversion
+            1000.0,  # main Late Cretaceous inversion
             # 400.0,  # Paleogene uplift
         ]
     )
@@ -145,7 +145,7 @@ class ModelParameters:
     # original_thicknesses = [[750.0 / 6] * 6]
     # original_thicknesses = [[200.0] * 7, [100.0] * 4]
     # original_thicknesses = [[1500.0] * 7, [1000.0] * 5]
-    original_thicknesses = [[1250.0]]
+    original_thicknesses = [[1000.0]]
     # original_thicknesses = [[57.8, 55.6, 84.2, 79.4, 16.4, 28.8]]
 
     # support for two-stage exhumation history, enables fast and slow exhumation segments
@@ -173,8 +173,8 @@ class ModelParameters:
     heatflow_ages = np.array(
         [
             0.0,
-            100.0,
-            150.0,
+            10.0,
+            # 150.0,
             300.0,
         ]
     )
@@ -182,10 +182,10 @@ class ModelParameters:
     heatflow_history = (
         np.array(
             [
-                60.0,  # Present
-                75.0,
-                80.0,
+                70.0,  # Present
                 70.0,
+                # 80.0,
+                76.0,
             ]
         )
         * 1e-3
@@ -266,7 +266,7 @@ class ModelParameters:
     #######
     # default sigma of uncertainty range for VR data,
     # if not specified in input file
-    vr_unc_sigma = 0.05
+    vr_unc_sigma = 0.075
 
 
 class ParameterRanges:

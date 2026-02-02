@@ -2163,7 +2163,6 @@ def calculate_vr(
     # 2. Optional auto-calibration
     # -----------------------------
     if auto_calibrate:
-
         if (
             vr_obs_depths is None
             or vr_obs_values is None
@@ -2173,51 +2172,87 @@ def calculate_vr(
                 "Auto-calibration requires vr_obs_depths, "
                 "vr_obs_values and depth_nodes"
             )
-
-        if verbose:
-            print("\n\n****************** VR auto-calibration (easy%Ro)")
-
-        # --- present-day profiles (last timestep) ---
+        print(
+            f"\n\n******************VR Observations: {vr_obs_values}"
+        )  # present-day profiles
         sumF_0 = sumF_nodes[:, -1]
-        depth_0 = depth_nodes[:, -1]
-
-        # ensure monotonic depth for interpolation
-        order = np.argsort(depth_0)
-        depth_0_sorted = depth_0[order]
-        sumF_0_sorted = sumF_0[order]
-
-        # interpolate sumF at observed VR depths
-        sumF_obs = np.interp(
-            vr_obs_depths,
-            depth_0_sorted,
-            sumF_0_sorted,
-            left=np.nan,
-            right=np.nan,
-        )
-
-        # clean data
+        depth_0 = depth_nodes[:, -1]  # interpolate sumF at observation depths
+        sumF_obs = np.interp(vr_obs_depths, depth_0, sumF_0)  # clean data
         mask = (
             np.isfinite(sumF_obs)
             & np.isfinite(vr_obs_values)
             & (vr_obs_values > 0.0)
         )
-
-        if mask.sum() < 3:
-            raise ValueError("Not enough valid VR data for calibration")
-
         sumF_obs = sumF_obs[mask]
         vr_obs = vr_obs_values[mask]
-
-        # --- EASY%Ro CALIBRATION ---
-        # ln(Ro) = C + 3.7 * sumF
-        C = np.mean(np.log(vr_obs) - 3.7 * sumF_obs)
+        # linear regression in log-space
+        y = np.log(vr_obs)
+        X = np.vstack([np.ones_like(sumF_obs), sumF_obs]).T
+        a, b = np.linalg.lstsq(X, y, rcond=None)[0]
 
         if verbose:
-            print(f"[VR calibration] ln(Ro) = {C:.3f} + 3.7 * sumF")
-            print(f"[VR calibration] offset C = {C:.3f}")
+            print(
+                f"\n\n********[VR calibration] ln(Ro) = {a:.3f} + {b:.3f} * sumF\n\n"
+            )  # apply calibrated relationship everywhere
+        vr_nodes = np.exp(a + b * sumF_nodes)
 
-        # apply calibrated relationship everywhere
-        vr_nodes = np.exp(C + 3.7 * sumF_nodes)
+        print(f"{vr_nodes=}")
+        print(f"{vr_obs_values=}")
+
+        # if (
+        #     vr_obs_depths is None
+        #     or vr_obs_values is None
+        #     or depth_nodes is None
+        # ):
+        #     raise ValueError(
+        #         "Auto-calibration requires vr_obs_depths, "
+        #         "vr_obs_values and depth_nodes"
+        #     )
+
+        # if verbose:
+        #     print("\n\n****************** VR auto-calibration (easy%Ro)")
+
+        # # --- present-day profiles (last timestep) ---
+        # sumF_0 = sumF_nodes[:, -1]
+        # depth_0 = depth_nodes[:, -1]
+
+        # # ensure monotonic depth for interpolation
+        # order = np.argsort(depth_0)
+        # depth_0_sorted = depth_0[order]
+        # sumF_0_sorted = sumF_0[order]
+
+        # # interpolate sumF at observed VR depths
+        # sumF_obs = np.interp(
+        #     vr_obs_depths,
+        #     depth_0_sorted,
+        #     sumF_0_sorted,
+        #     left=np.nan,
+        #     right=np.nan,
+        # )
+
+        # # clean data
+        # mask = (
+        #     np.isfinite(sumF_obs)
+        #     & np.isfinite(vr_obs_values)
+        #     & (vr_obs_values > 0.0)
+        # )
+
+        # if mask.sum() < 3:
+        #     raise ValueError("Not enough valid VR data for calibration")
+
+        # sumF_obs = sumF_obs[mask]
+        # vr_obs = vr_obs_values[mask]
+
+        # # --- EASY%Ro CALIBRATION ---
+        # # ln(Ro) = C + 3.7 * sumF
+        # C = np.mean(np.log(vr_obs) - 3.7 * sumF_obs)
+
+        # if verbose:
+        #     print(f"[VR calibration] ln(Ro) = {C:.3f} + 3.7 * sumF")
+        #     print(f"[VR calibration] offset C = {C:.3f}")
+
+        # # apply calibrated relationship everywhere
+        # vr_nodes = np.exp(C + 3.7 * sumF_nodes)
 
     return vr_nodes, sumF_nodes
 

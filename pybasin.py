@@ -107,6 +107,11 @@ def model_data_comparison_VR(
     Compare modeled and measured vitrinite reflectance values
     """
 
+    print("\n\n================ VR Comparison ========================")
+    print(f"{vr_data_well=}")
+    print(f"{vr_nodes=}")
+    print(f"{vr_data_well=}")
+
     vr_data_well["simulated_vr"] = np.interp(
         vr_data_well["depth"],
         z_nodes[-1, active_nodes[-1]],
