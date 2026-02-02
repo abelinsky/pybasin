@@ -1189,7 +1189,7 @@ def run_model_and_compare_to_data(
                 n_nodes,
                 vr_method=vr_method,
                 verbose=True,
-                auto_calibrate=False,
+                auto_calibrate=pybasin_params.auto_calibrate_VR,
                 vr_obs_depths=vr_data_well["depth"].values,
                 vr_obs_values=vr_data_well["VR"].values,
                 depth_nodes=z_nodes,

@@ -20,3 +20,4 @@ model_input/AFT_benchmarks*
 notebooks/.ipynb_checkpoints*
 *checkpoint.ipynb*
 .venv/
+model_output/

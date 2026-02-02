@@ -8,14 +8,14 @@ import numpy as np
 
 
 print("-" * 10)
-print("Example PyBasin dataset == without anomalies === ")
+print("Example PyBasin dataset == with anomalies === ")
 print("-" * 10)
 
 
 class ModelParameters:
 
     # location of input data .csv files
-    output_dir = "model_output/without_anomalies"
+    output_dir = "model_output/with_anomalies"
 
     # names of wells or surface outcrops to include in a single set of model runs:
     wells = ["KDK-01"]
@@ -40,7 +40,7 @@ class ModelParameters:
 
     # location of detailled output data
     datafile_output_dir = (
-        "model_output/without_anomalies/thermal_history_datafiles"
+        "model_output/with_anomalies/thermal_history_datafiles"
     )
 
     # use stratigraphy input data from stratigraphic maps instead of text files
@@ -299,40 +299,40 @@ class ParameterRanges:
 
     # example for running multiple models
 
-    # exhumed_thicknesses_s = np.array(
-    #     [
-    #         [0.0],
-    #         [250.0],
-    #         [500.0],
-    #         [750.0],
-    #         [1000.0],
-    #         [1250.0],
-    #         [1500.0],
-    #     ]
-    # )
-    # heatflow_history_s = (
-    #     np.array(
-    #         [
-    #             [54.0, 54.0],
-    #             [56.0, 56.0],
-    #             [58.0, 58.0],
-    #             [60.0, 60.0],
-    #             [62.0, 62.0],
-    #             [64.0, 64.0],
-    #             [66.0, 66.0],
-    #             [68.0, 68.0],
-    #             [70.0, 70.0],
-    #             [72.0, 72.0],
-    #             [74.0, 74.0],
-    #             [76.0, 76.0],
-    #             [78.0, 78.0],
-    #             [80.0, 80.0],
-    #             [82.0, 82.0],
-    #             [84.0, 84.0],
-    #             [86.0, 86.0],
-    #             [88.0, 88.0],
-    #             [90.0, 90.0],
-    #         ]
-    #     )
-    #     * 1e-3
-    # )
+    exhumed_thicknesses_s = np.array(
+        [
+            [0.0],
+            [250.0],
+            [500.0],
+            [750.0],
+            [1000.0],
+            [1250.0],
+            [1500.0],
+        ]
+    )
+    heatflow_history_s = (
+        np.array(
+            [
+                [54.0, 54.0],
+                [56.0, 56.0],
+                [58.0, 58.0],
+                [60.0, 60.0],
+                [62.0, 62.0],
+                [64.0, 64.0],
+                [66.0, 66.0],
+                [68.0, 68.0],
+                [70.0, 70.0],
+                [72.0, 72.0],
+                [74.0, 74.0],
+                [76.0, 76.0],
+                [78.0, 78.0],
+                [80.0, 80.0],
+                [82.0, 82.0],
+                [84.0, 84.0],
+                [86.0, 86.0],
+                [88.0, 88.0],
+                [90.0, 90.0],
+            ]
+        )
+        * 1e-3
+    )
