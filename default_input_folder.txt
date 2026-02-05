@@ -1,1 +1,1 @@
-input_data/without_anomalies
+input_data/with_anomalies_search

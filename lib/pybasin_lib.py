@@ -127,9 +127,20 @@ def compact(bm, n0, c, z_top, b_guess, max_decompaction_error, verbose=False):
 
         # thickness_diff_max = np.max(np.abs(bi_diff))
 
-        thickness_diff_max = (
-            0.0 if pd.isna(bi_diff) else np.max(np.abs(bi_diff))
-        )
+        # thickness_diff_max = (
+        #     0.0 if pd.isna(bi_diff) else np.max(np.abs(bi_diff))
+        # )
+
+        # bi_diff can be scalar or Series/DataFrame when index is duplicated
+        if isinstance(bi_diff, (pd.Series, pd.DataFrame)):
+            arr = pd.to_numeric(bi_diff.values.ravel(), errors="coerce")
+            thickness_diff_max = (
+                0.0 if np.all(np.isnan(arr)) else float(np.nanmax(np.abs(arr)))
+            )
+        else:
+            thickness_diff_max = (
+                0.0 if pd.isna(bi_diff) else float(np.max(np.abs(bi_diff)))
+            )
 
         bi = bi_new
 
@@ -938,6 +949,10 @@ def find_maximum_depth(input_df, exhumation_phases, max_decompaction_error):
     input_df["maximum_depth_bottom_temp"] = np.nan
     input_df["maximum_burial_thickness_temp"] = np.nan
 
+    dups = input_df.index[input_df.index.duplicated()].unique()
+    if len(dups) > 0:
+        print("!!! Warning: DUPLICATED STRAT UNITS:", list(dups))
+
     for exhumation_phase in exhumation_phases:
 
         # find pre-exhumation_strat
@@ -947,6 +962,14 @@ def find_maximum_depth(input_df, exhumation_phases, max_decompaction_error):
         pre_exhumation_strat = input_df.index[pre_exhumation_start + 1 :]
 
         for i, strat_unit in enumerate(pre_exhumation_strat):
+
+            row = input_df.loc[strat_unit]
+            # если индекс не уникален, row будет DataFrame; берём первую строку
+            if isinstance(row, pd.DataFrame):
+                row = row.iloc[0]
+
+            depth_top = row["depth_top"]
+            max_depth_top_temp = row["maximum_depth_top_temp"]
 
             if strat_unit == pre_exhumation_strat[0]:
                 z_top = 0
@@ -967,9 +990,12 @@ def find_maximum_depth(input_df, exhumation_phases, max_decompaction_error):
             # if top is deeper than present-day depth:
             # use present day thickness
             elif (
-                not pd.isna(input_df.loc[strat_unit, "depth_top"])
-                and input_df.loc[strat_unit, "maximum_depth_top_temp"]
-                >= input_df.loc[strat_unit, "depth_top"]
+                # not pd.isna(input_df.loc[strat_unit, "depth_top"])
+                # and input_df.loc[strat_unit, "maximum_depth_top_temp"]
+                # >= input_df.loc[strat_unit, "depth_top"]
+                not pd.isna(depth_top)
+                and not pd.isna(max_depth_top_temp)
+                and max_depth_top_temp >= depth_top
             ):
                 input_df.loc[strat_unit, "maximum_burial_thickness_temp"] = (
                     input_df.loc[strat_unit, "present-day_thickness"]
